@@ -1,5 +1,4 @@
-import { useState } from "react";
-import UserList from "./UserList";
+
 import UserSearch from "./UserSearch";
 export default function App() {
 
@@ -8,8 +7,7 @@ export default function App() {
     <div>
       <h1>User Search</h1>
       <UserSearch />
-      <h1>User List</h1>
-      <UserList />  
+        
     </div>
   );
 }

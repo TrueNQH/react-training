@@ -1,98 +1,137 @@
 import { useEffect, useState } from "react";
 
 export default function UserSearch() {
-  const [query, setQuery] = useState("");
-  const [users, setUsers] = useState([]);
-  const [status, setStatus] = useState("idle"); 
-  const [error, setError] = useState(null);
+
+  const [tuKhoa, setTuKhoa] = useState(""); 
+  const [danhSachUser, setDanhSachUser] = useState([]); 
+  const [dangTai, setDangTai] = useState(false); 
+  const [loi, setLoi] = useState(""); 
+
+ 
+  const timKiemUser = async (tuKhoaTimKiem) => {
+    try {
+      setDangTai(true); 
+      setLoi(""); 
+      
+     
+      const response = await fetch("https://jsonplaceholder.typicode.com/users");
+      const tatCaUser = await response.json();
+      
+      
+      const ketQua = tatCaUser.filter(user => 
+        user.name.toLowerCase().includes(tuKhoaTimKiem.toLowerCase())
+      );
+      
+      setDanhSachUser(ketQua); 
+      setDangTai(false); 
+      
+    } catch (error) {
+      setLoi("Có lỗi xảy ra khi tìm kiếm!");
+      setDangTai(false);
+    }
+  };
 
   useEffect(() => {
-  
-    if (!query.trim()) {
-      setUsers([]);
-      setStatus("idle");
-      setError(null);
+    if (!tuKhoa.trim()) {
+      setDanhSachUser([]);
+      setLoi("");
       return;
     }
 
-    setStatus("loading");
-    setError(null);
-
    
     const timer = setTimeout(() => {
-      const controller = new AbortController();
+      timKiemUser(tuKhoa);
+    }, 500);
 
-      (async () => {
-        try {
-         
-          const res = await fetch(
-            `https://jsonplaceholder.typicode.com/users`,
-            { signal: controller.signal }
-          );
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          const data = await res.json();
-
-          
-          const filtered = data.filter((u) =>
-            u.name.toLowerCase().includes(query.toLowerCase())
-          );
-
-          setUsers(filtered);
-          setStatus("success");
-        } catch (err) {
-          if (err.name === "AbortError") return; 
-          setError(err.message || "Unknown error");
-          setStatus("error");
-        }
-      })();
-
-    
-      return () => {
-        controller.abort();
-      };
-    }, 400);
-
-   
+  
     return () => clearTimeout(timer);
-  }, [query]);
+  }, [tuKhoa]);
 
   return (
-    <div style={{ maxWidth: 520, margin: "24px auto", fontFamily: "system-ui, sans-serif" }}>
-      <h2 style={{ margin: 0 }}>User Search</h2>
-      <p style={{ color: "#666", marginTop: 4 }}>
-        Demo gọi API 
+    <div style={{ 
+      maxWidth: 600, 
+      margin: "20px auto", 
+      padding: 20,
+      fontFamily: "Arial, sans-serif" 
+    }}>
+
+      <h1>Tìm kiếm User</h1>
+      <p style={{ color: "#666" }}>
+        Nhập tên để tìm kiếm user từ API
       </p>
 
+     
       <input
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        placeholder="Nhập tên user..."
+        type="text"
+        value={tuKhoa}
+        onChange={(e) => setTuKhoa(e.target.value)}
+        placeholder="Nhập tên user cần tìm..."
         style={{
           width: "100%",
-          padding: "10px 12px",
+          padding: 12,
+          fontSize: 16,
+          border: "2px solid #ddd",
           borderRadius: 8,
-          border: "1px solid #ccc",
-          outline: "none",
-          marginTop: 8,
+          marginBottom: 20
         }}
       />
 
-      <div style={{ marginTop: 12 }}>
-        {status === "idle" && <em>Nhập từ khóa để tìm…</em>}
-        {status === "loading" && <em>Đang tải…</em>}
-        {status === "error" && <span style={{ color: "crimson" }}>Lỗi: {error}</span>}
-        {status === "success" && users.length === 0 && <em>Không có kết quả.</em>}
+      {!tuKhoa && (
+        <p style={{ fontStyle: "italic", color: "#999" }}>
+         Hãy nhập tên để bắt đầu tìm kiếm
+        </p>
+      )}
 
-        {status === "success" && users.length > 0 && (
-          <ul style={{ paddingLeft: 18, marginTop: 8 }}>
-            {users.map((u) => (
-              <li key={u.id}>
-                <b>{u.name}</b> <span style={{ color: "#666" }}>({u.email})</span>
-              </li>
+      {dangTai && (
+        <p style={{ color: "#007bff" }}>
+          Đang tìm kiếm...
+        </p>
+      )}
+
+      {loi && (
+        <p style={{ color: "red", backgroundColor: "#ffe6e6", padding: 10, borderRadius: 5 }}>
+          {loi}
+        </p>
+      )}
+
+    
+      {!dangTai && tuKhoa && danhSachUser.length === 0 && !loi && (
+        <p style={{ fontStyle: "italic", color: "#999" }}>
+          Không tìm thấy user nào
+        </p>
+      )}
+
+      {danhSachUser.length > 0 && (
+        <div>
+          <h3>🎯 Kết quả ({danhSachUser.length} user):</h3>
+          <div style={{ 
+            backgroundColor: "#f8f9fa", 
+            padding: 15, 
+            borderRadius: 8,
+            border: "1px solid #e9ecef"
+          }}>
+            {danhSachUser.map((user) => (
+              <div key={user.id} style={{ 
+                padding: 10,
+                marginBottom: 10,
+                backgroundColor: "white",
+                borderRadius: 5,
+                border: "1px solid #dee2e6"
+              }}>
+                <div style={{ fontWeight: "bold", fontSize: 18 }}>
+                 {user.name}
+                </div>
+                <div style={{ color: "#666", marginTop: 5 }}>
+                  {user.email}
+                </div>
+                <div style={{ color: "#666", fontSize: 14 }}>
+                  {user.website}
+                </div>
+              </div>
             ))}
-          </ul>
-        )}
-      </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
