@@ -31,6 +31,15 @@ export default function RegisterForm() {
       }));
     }
   };
+function  handleInputChange2(e) {
+  const { name, value, type, checked } = e.target;
+  setFormData(prev => ({
+    ...prev,
+    [name] : value,
+  "checkbox": checked }
+  ));
+  
+  }
 
   const validateForm = () => {
     const newErrors = {};
